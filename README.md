@@ -15,12 +15,12 @@ see the example yaml file
 All functions are initialized with the config-dictionary. This dictionary can be generated from a file and a string:
 
 ```python
-config_dic_by_file( file_name ) 
+config_dic_by_file ( file_name ) 
 ```
 `file_name` is a string to a file name and can be a `.json` or a `.yaml` file.
 
 ```python
-config_dic_by_str( config_str ) 
+config_dic_by_str ( config_str ) 
 ```
 `config_str` is a string in the json or yaml format.
 
