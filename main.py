@@ -79,7 +79,21 @@ class LanguageGenerator3000:
     output = []
     for _ in range(sample_size):
       if 'random_sentence_structure' in kwargs and kwargs['random_sentence_structure']:
-        pass
+        if 'rss_min' in kwargs:
+          rmin = kwargs['rss_min']
+        else:
+          rmin = 2
+        if 'rss_max' in kwargs:
+          rmax = kwargs['rss_max']
+        else:
+          rmax = 8
+
+        sequence = []
+        for _ in range(random.randint(rmin, rmax)):
+          sequence.append(random.choice(list(rules['words'].keys())))
+
+        selected = {'letters': random.choice('.......!!!?.....!!?^')}
+
       else:
         selected = rules['sentence structure'][int(random.choice(selector))]
 
@@ -508,6 +522,6 @@ class LanguageGenerator3000:
 
 
 if __name__ == '__main__':
-  for _ in LanguageGenerator3000(sample_size=1000).generate_sentence_list(10, True, correlation={"type": "articles", "word": "saki"}):
+  for _ in LanguageGenerator3000(sample_size=1000).generate_sentence_list(10, True, correlation={"type": "articles", "word": "saki"}, random_sentence_structure=True):
     print(_['sentence'])
   # .get_correlated_word_str({"type": "articles", "word": "saki"}, 'articles'))
