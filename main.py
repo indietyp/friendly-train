@@ -204,7 +204,10 @@ class LanguageGenerator3000:
 
     return {'type': word_type, 'word': word}
 
-  def generate_word_list(self, sample_size=50, sort=False, filepath='main.json'):
+  def generate_word_list(self, sample_size=50, sort=False, filepath=''):
+    if filepath == '':
+      filepath = self.filepath
+
     rules = deepcopy(self.rules)
 
     if os.path.isfile(filepath):
