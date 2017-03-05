@@ -243,7 +243,7 @@ class LanguageGenerator3000:
       return wordlist
 
   def wordcount(self):
-    return len(self.generate_word_list())
+    return len(self.generate_word_list(filepath=self.filepath))
 
   def get_word_str(self, word):
     return word['word']
