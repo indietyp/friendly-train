@@ -1,0 +1,30 @@
+# declare general sentence structure for reference
+sentence structure: [A-S-V-O]
+
+# declare usable words, don't need to be included in sentence structure
+words:
+  articles:
+    - A
+    limit: 7
+    a: [sd (0.7)]
+  subject: S
+  verb: V
+  object: O
+
+# used alphabet, combinations possible
+alphabet: [GERMAN]
+
+# char limiter
+char limit:
+  min: 1
+  max: 10
+
+# used vowels - if you really want to be special use 0 as min and max
+vowels:
+  min: 1
+  max: 4
+
+# additional rules o follows with s possibility of 0.5
+rules:
+  o: [s (0.5)]
+  a: [d (0.2)]
