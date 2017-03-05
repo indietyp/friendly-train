@@ -1,1 +1,1 @@
-pip install yaml
+pip install pyyaml
