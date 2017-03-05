@@ -40,7 +40,10 @@ class LanguageGenerator3000:
     for sequence in sequences:
       if 'correlation' in kwargs:
         selected = self.get_correlated_word_str(kwargs['correlation'], sequence)
-        selected = {'word': selected, 'type': deepcopy(sequence)}
+        if selected is not False:
+          selected = {'word': selected, 'type': deepcopy(sequence)}
+        else:
+          selected = random.choice(self.wordlist)
 
         del kwargs['correlation']
       elif output['sentence'] == '' or not weighted:
@@ -48,7 +51,11 @@ class LanguageGenerator3000:
         selected = random.choice(words)
       else:
         selected = self.get_correlated_word_str(last, sequence)
-        selected = {'word': selected, 'type': deepcopy(sequence)}
+
+        if selected is not False:
+          selected = {'word': selected, 'type': deepcopy(sequence)}
+        else:
+          selected = random.choice(self.wordlist)
 
       output['raw']['text'].append(selected)
       output['sentence'] += selected['word'] + ' '
@@ -261,6 +268,8 @@ class LanguageGenerator3000:
       random_number -= correlated_words_dict[correlated_word]
       if random_number <= 0:
         return correlated_word
+
+    return False
 
   def generate_probabilities(self, randomness=0.2):
     # generate giant sentence list
