@@ -1,5 +1,5 @@
 # declare general sentence structure for reference
-sentence structure: [A-S-V-O, S-O (0.1)]
+sentence structure: [A-S-V-O!, S-O! (0.4)]
 
 # declare usable words, don't need to be included in sentence structure
 # extends replaces other settings granuarly
@@ -12,13 +12,24 @@ words:
         min: 2
         max: 4
       rules:
-        VOWEL: ['g (0.9)', 'VOWEL']
-    # a: [sd (0.7)]
-  subject: S
+        VOWEL: ['k (0.9)', 'VOWEL']
+  subject:
+    identification: S
+    extends:
+      char limit:
+        min: 4
+        max: 18
   verb: V
-  object: O
+  object:
+    identification: O
+    whitespace: true
+    # extends:
+    #   char limit:
+    #     min: 10
+    #     max: 25
 
 # used alphabet, combinations possible
+# alphabet: [g, b, d, i, w, o, a, s]
 alphabet: [GERMAN, ENGLISH (0.2)]
 
 # char limiter
@@ -30,7 +41,10 @@ char limit:
 vowels:
   charlist:
     - INHERIT
-    - a (0.3)
+    - a (0.1)
+    # - o
+    # - a
+    # - i
   min: 1
   max: 4
 
