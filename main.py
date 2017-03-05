@@ -11,6 +11,9 @@ from copy import deepcopy
 class LanguageGenerator3000:
   def __init__(self, configpath='config.yaml', filepath='main.json', sample_size=500):
     print('started')
+    configpath = os.path.dirname(os.path.realpath(__file__)) + '/' + configpath
+    filepath = os.path.dirname(os.path.realpath(__file__)) + '/' + filepath
+
     filetype = configpath.split('.')[-1]
     file = open(configpath, 'r').read()
 
@@ -61,7 +64,6 @@ class LanguageGenerator3000:
       else:
         used += rules['sentence structure'][pointer]['probability']
         selector += str(pointer) * int(rules['sentence structure'][pointer]['probability'] * sample_size)
-        print('prob' + str(int(rules['sentence structure'][pointer]['probability'] * sample_size)))
 
     if used < sample_size:
       for pointer in no_probability:
@@ -488,4 +490,4 @@ class LanguageGenerator3000:
 
 if __name__ == '__main__':
   for _ in LanguageGenerator3000(sample_size=1000).generate_sentence_list(sample_size=10):
-    print(_['sentence'] + '\n')
+    print(_['sentence'])
