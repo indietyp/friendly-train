@@ -29,9 +29,13 @@ vowels:
 # additional rules o follows with s possibility of 0.5
 # the use of VOWEL and CONSONANT is only allowed in the latin alphabet or if declared in the vowels section
 # regex support r'
+# under category for all declared usable words is possible, for more confusion, have fun
 rules:
   o: [s (0.5)]
   a: [d (0.2)]
   VOWEL: [CONSONANT (0.5), CONSONANTCONSONANT (0.3), CONSONANTCONSONANTCONSONANT (0.2)]
   VOWELVOWEL: [CONSONANTCONSONANT (0.6)]
   r'[a-b].*?: [aha (0.3)]
+  # maybe
+  O:
+    a: ['d (0.7)']
