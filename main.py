@@ -1,6 +1,8 @@
 import json
 import yaml
+import os
 import re
+import uuid
 import string
 import random
 from copy import deepcopy
@@ -10,10 +12,7 @@ class LanguageGenerator3000:
   def __init__(self):
     pass
 
-  def generate_single_word(self, rules, target):
-    return {'type': 'subject', 'word': 'oggle'}
-
-  def sentence(self, *args, **kwargs):
+  def generate_single_sentence(self, *args, **kwargs):
     return {'sentence': 'oggle gobble dingdong!',
             'raw': {
                 'text': [
@@ -25,7 +24,7 @@ class LanguageGenerator3000:
             }
             }
 
-  def sentencelist(self, count=3, *args, **kwargs):
+  def generate_sentence_list(self, sample_size=3, *args, **kwargs):
     return [{'sentence': 'oggle gobble dingdong!',
             'raw': {
                 'text': [
@@ -38,11 +37,125 @@ class LanguageGenerator3000:
     },
     ]
 
-  def wordlist(self, rules=''):
-    return [{'type': 'subject', 'word': 'oggle'}, {'type': 'verb', 'word': 'uggle'}]
+  def generate_single_word(self, word_type):
+    rules = deepcopy(self.rules)
+
+    if isinstance(rules['words'][word_type], dict) and 'extends' in rules['words'][word_type]:
+      rules['words'][word_type]['extends']['rules'] = self.__vowel_consonant_replacer(rules['words'][word_type]['extends']['rules'], self.vowels, self.consonants)
+      for key, items in rules['words'][word_type]['extends'].items():
+        if key == rules:
+          items.keys()
+
+        rules[key].update(items)
+
+    limit = rules['char limit']
+    vconfig = rules['vowels']
+    vowels = deepcopy(self.vowels)
+
+    length = random.randint(limit['min'], limit['max'])
+    vlimit = random.randint(vconfig['min'], vconfig['max'])
+
+    word = ''
+    letters = ''
+    vlength = 0
+
+    while len(word) <= length:
+      apply_rule = False
+      applied_rule = []
+      if letters in rules['rules'].keys():
+        apply_rule = True
+        applied_rule = [rules['rules'][letters]]
+
+      else:
+        for letter in list(letters):
+          if letter in rules['rules']:
+            apply_rule = True
+            applied_rule.append(rules['rules'][letter])
+
+      if not apply_rule:
+        if len(vowels) > 0:
+          stuff = [self.consonants, vowels]
+        letters = random.choice(random.choice(stuff))
+      else:
+        letters = ''
+        print(applied_rule[0])
+        applied_rule = applied_rule[0]
+
+        selector = ''
+        no_probablity = []
+        used = 0
+        for pointer in range(0, len(applied_rule)):
+          if applied_rule[pointer]['probablity'] == -1:
+            no_probablity.append(pointer)
+
+          used += applied_rule[pointer]['probablity']
+          selector += str(pointer) * int(applied_rule[pointer]['probablity'] * 100)
+
+        if used < 1:
+          for pointer in no_probablity:
+            selector += '{}'.format(pointer) * int(((1 - used) / len(no_probablity)) * 100)
+
+        selected = int(random.choice(selector))
+
+        for letter in applied_rule[selected]['letters']:
+          if letter == 'CONSONANT' or (letter == 'VOWEL' and vowels == 0):
+            letter = list(self.consonants)
+          elif letter == 'VOWEL':
+            letter = list(vowels)
+
+          letters += random.choice(letter)
+
+      if vlength <= vlimit:
+        vlength = len(re.findall(r'([^{}])'.format(','.join(list(set(vowels)))), ''.join(letters))[1:-1])
+        vlimit += vlength
+
+        if vlength >= vlimit:
+          vowels = ''
+
+      word += letters
+
+    return {'type': word_type, 'word': word}
+
+  def generate_word_list(self, sample_size=50, sort=False):
+    rules = deepcopy(self.rules)
+
+    if os.path.isfile('wordlist.json'):
+      with open('wordlist.json', 'r') as out:
+        wordlist = json.loads(out.read())
+        if sort:
+          wordlist = sorted(wordlist, key=lambda x: x['word'])
+        self.wordlist = wordlist
+        return wordlist
+
+    else:
+      wordlist = []
+      no_limit = []
+      generated = 0
+
+      for key, item in rules['words'].items():
+        if isinstance(item, dict) and 'limit' in item:
+          generated += item['limit']
+          for _ in range(item['limit']):
+            wordlist.append(self.generate_single_word(key))
+        else:
+          no_limit.append(key)
+
+      if generated < sample_size:
+        for key in no_limit:
+          for _ in range(int((sample_size - generated) / len(no_limit))):
+            wordlist.append(self.generate_single_word(key))
+
+      with open('wordlist.json', 'w') as out:
+        out.write(json.dumps(wordlist))
+
+      if sort:
+        wordlist = sorted(wordlist, key=lambda x: x['word'])
+
+      self.wordlist = wordlist
+      return wordlist
 
   def wordcount(self):
-    return len(self.wordlist())
+    return len(self.generate_word_list())
 
   def get_word_str(self, word):
     return word['word']
@@ -61,7 +174,7 @@ class LanguageGenerator3000:
 
   def generate_probabilities(self, randomness=0.2):
     # generate giant sentence list
-    sentence_basis = self.sentencelist(count=(1 / randomness) * self.wordcount())
+    sentence_basis = self.generate_sentence_list(count=(1 / randomness) * self.wordcount(), weighted=False)
     occurances_by_word_type = {}
     # count occurances
     for single_sentence in sentence_basis:
@@ -135,10 +248,6 @@ class LanguageGenerator3000:
 
   def convert(self, raw):
     converted = self.__convert(raw)
-    # print(converted)
-    # TODO: rules change keys
-    # TODO: alphbet conversion vowel, consonant
-
     end_vowels = ''
     end_consonant = ''
 
@@ -205,8 +314,9 @@ class LanguageGenerator3000:
 
     converted['rules'] = self.__vowel_consonant_replacer(converted['rules'], list(set(vowels)), list(set(consonant)))
 
-    self.consonant = consonant
+    self.consonants = consonant
     self.vowels = vowels
+    self.rules = converted
 
     return converted, consonant, vowels
 
@@ -291,6 +401,9 @@ class LanguageGenerator3000:
     converted = raw
     return converted
 
+  def get_weights(self):
+    return self.__weights
+
   def generate(self, filepath="./config.yaml", sample_size=500):
     print('started')
     filetype = filepath.split('.')[-1]
@@ -305,9 +418,10 @@ class LanguageGenerator3000:
       rules = json.loads(file)
 
     converted, _, _ = self.convert(rules)
+    print(self.generate_word_list(500, sort=True))
+    self.generate_probabilities()
 
     print('Generating probabilities...')
-    self.generate_probabilities()
 
 
 if __name__ == '__main__':
