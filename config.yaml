@@ -1,5 +1,5 @@
 # declare general sentence structure for reference
-sentence structure: [A-S-V-O!, S-O! (0.4)]
+sentence structure: [A-S-V-O. (0.6), S-O! (0.2), "V-A-S-V?", S-0.]
 
 # declare usable words, don't need to be included in sentence structure
 # extends replaces other settings granuarly

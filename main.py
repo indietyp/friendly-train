@@ -13,6 +13,8 @@ class LanguageGenerator3000:
     print('started')
     configpath = os.path.dirname(os.path.realpath(__file__)) + '/' + configpath
     filepath = os.path.dirname(os.path.realpath(__file__)) + '/' + filepath
+    self.filepath = filepath
+    self.configpath = configpath
 
     filetype = configpath.split('.')[-1]
     file = open(configpath, 'r').read()
@@ -32,11 +34,16 @@ class LanguageGenerator3000:
     print('Generating probabilities...')
     self.generate_probabilities()
 
-  def generate_single_sentence(self, sequences, punctuation, weighted=True):
+  def generate_single_sentence(self, sequences, punctuation, weighted=True, *args, **kwargs):
     output = {'raw': {'text': []}, 'sentence': ''}
     last = ''
     for sequence in sequences:
-      if output['sentence'] == '' or not weighted:
+      if 'correlation' in kwargs:
+        selected = self.get_correlated_word_str(kwargs['correlation'], sequence)
+        selected = {'word': selected, 'type': deepcopy(sequence)}
+
+        del kwargs['correlation']
+      elif output['sentence'] == '' or not weighted:
         words = [word for word in self.wordlist if word['type'] == sequence]
         selected = random.choice(words)
       else:
@@ -50,7 +57,7 @@ class LanguageGenerator3000:
     output['sentence'] = output['sentence'][:-1] + punctuation
     return output
 
-  def generate_sentence_list(self, sample_size=3, weighted=True):
+  def generate_sentence_list(self, sample_size=3, weighted=True, *args, **kwargs):
     rules = deepcopy(self.rules)
     sample_size = int(sample_size)
 
@@ -71,24 +78,30 @@ class LanguageGenerator3000:
 
     output = []
     for _ in range(sample_size):
-      selected = rules['sentence structure'][int(random.choice(selector))]
+      if 'random_sentence_structure' in kwargs and kwargs['random_sentence_structure']:
+        pass
+      else:
+        selected = rules['sentence structure'][int(random.choice(selector))]
 
-      sequence = []
-      for wordtype in selected['letters'][:-1]:
-        actual = ''
-        for key, item in rules['words'].items():
-          if isinstance(item, list):
-            if ''.join(item[0]['letters']) == wordtype:
-              actual = key
-          elif isinstance(item, dict) and 'identification' in item.keys():
-            if ''.join(item['identification'][0]['letters']) == wordtype:
-              actual = key
-          else:
-            raise ValueError('wow! You did it! Amazing! You tripped the only error Error in the whole class')
-        if actual != '':
-          sequence.append(actual)
+        sequence = []
+        for wordtype in selected['letters'][:-1]:
+          actual = ''
+          for key, item in rules['words'].items():
+            if isinstance(item, list):
+              if ''.join(item[0]['letters']) == wordtype:
+                actual = key
+            elif isinstance(item, dict) and 'identification' in item.keys():
+              if ''.join(item['identification'][0]['letters']) == wordtype:
+                actual = key
+            else:
+              raise ValueError('wow! You did it! Amazing! You tripped the only error Error in the whole class')
+          if actual != '':
+            sequence.append(actual)
 
-      output.append(self.generate_single_sentence(sequence, selected['letters'][-1], weighted))
+      if 'correlation' in kwargs:
+        output.append(self.generate_single_sentence(sequence, selected['letters'][-1], weighted, correlation=kwargs['correlation']))
+      else:
+        output.append(self.generate_single_sentence(sequence, selected['letters'][-1], weighted))
 
     return output
 
@@ -487,7 +500,14 @@ class LanguageGenerator3000:
   def get_weights(self):
     return self.__weights
 
+  def get_word_type(self, word):
+    return [x['type'] for x in self.wordlist if x['word'] == word][0]
+
+  def get_random_word(self):
+    return random.choice(self.wordlist)
+
 
 if __name__ == '__main__':
-  for _ in LanguageGenerator3000(sample_size=1000).generate_sentence_list(sample_size=10):
+  for _ in LanguageGenerator3000(sample_size=1000).generate_sentence_list(10, True, correlation={"type": "articles", "word": "saki"}):
     print(_['sentence'])
+  # .get_correlated_word_str({"type": "articles", "word": "saki"}, 'articles'))
